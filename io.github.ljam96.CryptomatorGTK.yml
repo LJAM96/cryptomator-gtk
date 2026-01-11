@@ -1,0 +1,126 @@
+app-id: io.github.ljam96.CryptomatorGTK
+runtime: org.gnome.Platform
+runtime-version: "47"
+sdk: org.gnome.Sdk
+command: cryptomator-gtk
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=all
+  - --filesystem=host
+  - --share=network
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.freedesktop.Flatpak
+  - --talk-name=org.freedesktop.FileManager1
+  - --filesystem=xdg-run/dconf
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk17
+
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk17/install.sh
+
+  - name: libfuse3
+    buildsystem: meson
+    config-opts:
+      - -Duseroot=false
+      - -Dudevrulesdir=/app/lib/udev/rules.d
+      - -Dexamples=false
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+    sources:
+      - type: archive
+        url: https://github.com/libfuse/libfuse/releases/download/fuse-3.10.5/fuse-3.10.5.tar.xz
+        sha256: b2e283485d47404ac896dd0bb7f7ba81e1470838e677e45f659804c3a3b69666
+
+  - name: fusermount-wrapper
+    buildsystem: simple
+    build-commands:
+      - install -D fusermount-wrapper.sh /app/bin/fusermount3
+      - chmod +x /app/bin/fusermount3
+    sources:
+      - type: file
+        path: fusermount-wrapper.sh
+
+  - name: cryptomator-cli
+    buildsystem: simple
+    build-commands:
+      - install -d /app/lib/cryptomator-cli
+      - cp -r * /app/lib/cryptomator-cli/
+      - install -d /app/bin
+      - |
+        cat > /app/bin/cryptomator-cli <<EOF
+        #!/bin/bash
+        export JAVA_HOME=/app/jre
+        export JAVA_OPTS="-Djava.library.path=/app/lib -Dfile.encoding=utf-8"
+        exec /app/lib/cryptomator-cli/bin/cryptomator-cli "\$@"
+        EOF
+      - chmod +x /app/bin/cryptomator-cli
+    sources:
+      - type: archive
+        url: https://github.com/cryptomator/cli/releases/download/0.6.2/cryptomator-cli-0.6.2-linux-x64.zip
+        sha256: 6c2ac174f94a2ff30fdfa00ac43669703f1bca1fa633a762dc336bf9d794b1cb
+
+  - name: python3-cffi
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} *.whl
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/78/2d/7fa73dfa841b5ac06c7b8855cfc18622132e365f5b81d02230333ff26e9e/cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+        sha256: 3e17ed538242334bf70832644a32a7aae3d83b57567f9fd60a26257e992b79ba
+      - type: file
+        url: https://files.pythonhosted.org/packages/a0/e3/59cd50310fc9b59512193629e1984c1f95e5c8ae6e5d8c69532ccc65a7fe/pycparser-2.23-py3-none-any.whl
+        sha256: e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934
+
+  - name: python3-cryptography
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} *.whl
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/c9/56/e7e69b427c3878352c2fb9b450bd0e19ed552753491d39d7d0a2f5226d41/cryptography-46.0.3-cp311-abi3-manylinux_2_28_x86_64.whl
+        sha256: a2c0cd47381a3229c403062f764160d57d4d175e022c1df84e168c6251a22eec
+
+  - name: python3-miscreant
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} *.tar.gz
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/b0/39/f6bc2144f9b6d5ccfed4a49339ab2dec42443a9c9e7df75394864a1db2f8/miscreant-0.3.0.tar.gz
+        sha256: 0f7d6e9698a81f1b9f0e6181411b971b4620d6b829b47a8f714bc9d016ed0d35
+
+  - name: python3-pyjwt
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} *.whl
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/61/ad/689f02752eeec26aed679477e80e632ef1b682313be70793d798c1d5fc8f/PyJWT-2.10.1-py3-none-any.whl
+        sha256: dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb
+
+  - name: cryptomator-gtk
+    buildsystem: simple
+    build-commands:
+      - install -D src/main.py /app/bin/cryptomator-gtk
+      - install -d /app/share/cryptomator-gtk/src
+      - cp -r src/* /app/share/cryptomator-gtk/src/
+      - install -D data/io.github.ljam96.CryptomatorGTK.desktop /app/share/applications/io.github.ljam96.CryptomatorGTK.desktop
+      - install -D data/io.github.ljam96.CryptomatorGTK.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.CryptomatorGTK.svg
+      # Wrapper to launch python app
+      - |
+        cat > /app/bin/cryptomator-gtk <<EOF
+        #!/bin/bash
+        export PYTHONPATH=/app/share/cryptomator-gtk/src
+        exec python3 /app/share/cryptomator-gtk/src/main.py "\$@"
+        EOF
+      - chmod +x /app/bin/cryptomator-gtk
+    sources:
+      - type: dir
+        path: .

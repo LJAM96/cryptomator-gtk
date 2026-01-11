@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Cryptomator-gtk
+Comment=Unlock your Cryptomator vaults
+Exec=cryptomator-gtk
+Icon=io.github.ljam96.CryptomatorGTK
+Terminal=false
+Type=Application
+Categories=Utility;Security;
+StartupNotify=true
