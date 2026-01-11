@@ -7,12 +7,9 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 - 🔓 **Unlock and lock Cryptomator vaults** - Full vault management without the official Java app
 - 🆕 **Create new vaults** - Fully standalone vault creation (no official Cryptomator app needed!)
 - 🔐 **Secure password handling** - Optional system keyring integration
-- 🔄 **Non-blocking operations** - Background threads keep UI responsive
 - 📁 **File manager integration** - Automatically opens mounted vaults
-- 🔔 **Smart unmount detection** - Detects when vaults are manually ejected
 - ✏️ **Rename vaults** - Organize your vaults easily
 - 🗑️ **Remove vaults** - Clean up your vault list
-- 🖱️ **Double-click support** - Quick unlock/lock with double-click
 
 ## Screenshots
 
