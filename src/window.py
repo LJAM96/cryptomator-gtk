@@ -12,7 +12,7 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__(*args, **kwargs)
         
         self.set_default_size(800, 600)
-        self.set_title("Cryptomator-gtk")
+        self.set_title("Cryptomator")
         
         self.vaults = [] 
         self._rows = [] 
