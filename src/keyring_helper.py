@@ -4,7 +4,7 @@ from gi.repository import Secret
 
 # Secret Schema
 # We use a simple schema with the vault path as a unique attribute
-SCHEMA = Secret.Schema.new("io.github.ljam96.CryptomatorGTK",
+SCHEMA = Secret.Schema.new("io.github.ljam96.cryptomatorgtk",
     Secret.SchemaFlags.NONE,
     {
         "vault_path": Secret.SchemaAttributeType.STRING,

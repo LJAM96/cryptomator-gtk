@@ -60,7 +60,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.status_page = Adw.StatusPage()
         self.status_page.set_title("No Vaults")
         self.status_page.set_description("Add a vault to get started.")
-        self.status_page.set_icon_name("io.github.ljam96.CryptomatorGTK") 
+        self.status_page.set_icon_name("io.github.ljam96.cryptomatorgtk") 
         self.stack.add_named(self.status_page, "empty")
 
         # List view (Preferences Page)

@@ -1,4 +1,4 @@
-app-id: io.github.ljam96.CryptomatorGTK
+app-id: io.github.ljam96.cryptomatorgtk
 runtime: org.gnome.Platform
 runtime-version: "47"
 sdk: org.gnome.Sdk
@@ -111,8 +111,8 @@ modules:
       - install -D src/main.py /app/bin/cryptomator-gtk
       - install -d /app/share/cryptomator-gtk/src
       - cp -r src/* /app/share/cryptomator-gtk/src/
-      - install -D data/io.github.ljam96.CryptomatorGTK.desktop /app/share/applications/io.github.ljam96.CryptomatorGTK.desktop
-      - install -D data/io.github.ljam96.CryptomatorGTK.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.CryptomatorGTK.svg
+      - install -D data/io.github.ljam96.cryptomatorgtk.desktop /app/share/applications/io.github.ljam96.cryptomatorgtk.desktop
+      - install -D data/io.github.ljam96.cryptomatorgtk.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.cryptomatorgtk.svg
       # Wrapper to launch python app
       - |
         cat > /app/bin/cryptomator-gtk <<EOF

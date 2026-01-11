@@ -11,6 +11,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,7 +31,7 @@ jobs:
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
-          manifest-path: io.github.ljam96.CryptomatorGTK.yml
+          manifest-path: io.github.ljam96.cryptomatorgtk.yml
           cache-key: flatpak-builder-${{ github.sha }}
       
       - name: Generate SHA256 checksum

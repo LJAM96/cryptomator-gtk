@@ -52,13 +52,13 @@ class SettingsDialog(Adw.PreferencesWindow):
 
     def check_autostart(self):
         autostart_dir = self.get_host_autostart_dir()
-        path = os.path.join(autostart_dir, "io.github.ljam96.CryptomatorGTK.desktop")
+        path = os.path.join(autostart_dir, "io.github.ljam96.cryptomatorgtk.desktop")
         return os.path.exists(path)
 
     def on_autostart_changed(self, row, param):
         is_active = row.get_active()
         autostart_dir = self.get_host_autostart_dir()
-        autostart_path = os.path.join(autostart_dir, "io.github.ljam96.CryptomatorGTK.desktop")
+        autostart_path = os.path.join(autostart_dir, "io.github.ljam96.cryptomatorgtk.desktop")
         
         if is_active:
             os.makedirs(autostart_dir, exist_ok=True)
@@ -67,9 +67,9 @@ class SettingsDialog(Adw.PreferencesWindow):
             content = """[Desktop Entry]
 Type=Application
 Name=Cryptomator GTK
-Exec=flatpak run io.github.ljam96.CryptomatorGTK --background
-Icon=io.github.ljam96.CryptomatorGTK
-X-Flatpak=io.github.ljam96.CryptomatorGTK
+Exec=flatpak run io.github.ljam96.cryptomatorgtk --background
+Icon=io.github.ljam96.cryptomatorgtk
+X-Flatpak=io.github.ljam96.cryptomatorgtk
 Terminal=false
 Categories=Utility;Security;
 """

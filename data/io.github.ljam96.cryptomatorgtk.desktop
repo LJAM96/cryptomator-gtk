@@ -2,7 +2,7 @@
 Name=Cryptomator-gtk
 Comment=Unlock your Cryptomator vaults
 Exec=cryptomator-gtk
-Icon=io.github.ljam96.CryptomatorGTK
+Icon=io.github.ljam96.cryptomatorgtk
 Terminal=false
 Type=Application
 Categories=Utility;Security;
