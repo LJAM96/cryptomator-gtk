@@ -1,0 +1,23 @@
+name: Trigger Flatpak Repo Update
+
+on:
+  push:
+    branches: [main, master]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  trigger-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger flatpak-repo rebuild
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository_owner }}/flatpak-repo/dispatches \
+            -d '{"event_type":"new-flatpak","client_payload":{"repo":"${{ github.repository }}","ref":"${{ github.ref }}"}}'
+      
+      - name: Report status
+        run: echo "✅ Triggered flatpak-repo rebuild for ${{ github.repository }}"
