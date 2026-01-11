@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v0.1.2)'
+        required: true
+        type: string
 
 jobs:
   build:
@@ -21,21 +27,22 @@ jobs:
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: cryptomator-gtk-${{ github.ref_name }}.flatpak
+          bundle: cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
           manifest-path: io.github.ljam96.CryptomatorGTK.yml
           cache-key: flatpak-builder-${{ github.sha }}
       
       - name: Generate SHA256 checksum
         run: |
-          sha256sum cryptomator-gtk-${{ github.ref_name }}.flatpak > cryptomator-gtk-${{ github.ref_name }}.flatpak.sha256
-          cat cryptomator-gtk-${{ github.ref_name }}.flatpak.sha256
+          sha256sum cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak > cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
+          cat cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.version || github.ref_name }}
           files: |
-            cryptomator-gtk-${{ github.ref_name }}.flatpak
-            cryptomator-gtk-${{ github.ref_name }}.flatpak.sha256
+            cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
+            cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -45,12 +52,12 @@ jobs:
             Download the `.flatpak` file and install:
             
             ```bash
-            flatpak install cryptomator-gtk-${{ github.ref_name }}.flatpak
+            flatpak install cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
             ```
             
             Verify the download (optional):
             ```bash
-            sha256sum -c cryptomator-gtk-${{ github.ref_name }}.flatpak.sha256
+            sha256sum -c cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
             ```
             
             ## What's Changed
