@@ -73,10 +73,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.vaults_file = os.path.join(self.config_dir, "vaults.json")
         self.load_vaults()
         
+        # Restore vault states (detect if still mounted)
+        self.restore_vault_states()
+        
         self.update_ui_state()
         
         # Auto-mount logic
         GLib.timeout_add(500, self.check_automount) # Small delay to let UI show first or run in BG?
+        
+        # Connect close request handler
+        self.connect("close-request", self.on_close_request)
 
     def check_automount(self):
         # Load settings to see if automount is enabled
@@ -93,6 +99,61 @@ class MainWindow(Adw.ApplicationWindow):
         if enabled:
             self.perform_automount()
         return False
+    
+    def restore_vault_states(self):
+        """Check if vaults are still mounted from previous session"""
+        from backend import CryptomatorBackend
+        
+        for row in self.get_vault_rows():
+            vault = row.vault
+            # Check if vault has a mount_path saved and if it's still mounted
+            if vault.mount_path and CryptomatorBackend.is_mounted(vault.path, vault.mount_path):
+                print(f"DEBUG: Vault {vault.name} is still mounted at {vault.mount_path}", flush=True)
+                vault.status = VaultStatus.UNLOCKED
+                row.update_status()
+                # Start monitoring for manual unmounts
+                row.start_mount_monitoring()
+            else:
+                # Not mounted, clear mount_path
+                vault.mount_path = None
+                vault.status = VaultStatus.LOCKED
+                row.update_status()
+    
+    def on_close_request(self, window):
+        """Handle window close request - warn if vaults are unlocked"""
+        unlocked_vaults = [row.vault for row in self.get_vault_rows() 
+                          if row.vault.status == VaultStatus.UNLOCKED]
+        
+        if unlocked_vaults:
+            # Save vault states before showing dialog
+            self.save_vaults()
+            
+            vault_names = "\n".join([f"• {v.name}" for v in unlocked_vaults])
+            dialog = Adw.MessageDialog(
+                heading="Vaults Still Unlocked",
+                body=f"The following vault(s) are still unlocked and mounted:\n\n{vault_names}\n\n"
+                     f"They will remain accessible until you lock them or restart your system. "
+                     f"Close anyway?",
+                transient_for=self
+            )
+            dialog.add_response("cancel", "Cancel")
+            dialog.add_response("close", "Close Anyway")
+            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.set_default_response("cancel")
+            
+            def on_response(dlg, response):
+                if response == "close":
+                    # User confirmed, allow close
+                    self.destroy()
+                dlg.close()
+            
+            dialog.connect("response", on_response)
+            dialog.present()
+            return True  # Prevent default close
+        
+        # No unlocked vaults, save and allow close
+        self.save_vaults()
+        return False  # Allow default close
 
     def perform_automount(self):
         import keyring_helper

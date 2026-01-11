@@ -18,12 +18,14 @@ class Vault:
     def to_dict(self):
         return {
             "name": self.name,
-            "path": self.path
+            "path": self.path,
+            "mount_path": self.mount_path
         }
 
     @classmethod
     def from_dict(cls, data):
         return cls(
             name=data["name"],
-            path=data["path"]
+            path=data["path"],
+            mount_path=data.get("mount_path")
         )

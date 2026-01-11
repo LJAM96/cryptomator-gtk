@@ -88,6 +88,26 @@ class CryptomatorBackend:
         return False, None
 
     @classmethod
+    def is_mounted(cls, vault_path, mount_point):
+        """Check if a vault is currently mounted at the given mount point"""
+        if not mount_point or not os.path.exists(mount_point):
+            return False
+        
+        # Check if the mount point is a FUSE mount using /proc/mounts
+        try:
+            with open('/proc/mounts', 'r') as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        mounted_path = parts[1]
+                        if mounted_path == mount_point:
+                            return True
+        except Exception as e:
+            print(f"DEBUG: Error checking if mounted: {e}", flush=True)
+        
+        return False
+    
+    @classmethod
     def lock(cls, vault_path):
         if vault_path in cls._instances:
             proc, mount_path = cls._instances[vault_path]

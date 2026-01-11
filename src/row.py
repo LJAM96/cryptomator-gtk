@@ -157,29 +157,42 @@ class VaultRow(Adw.ActionRow):
     
     def on_action_clicked(self, btn):
         if self.vault.status == VaultStatus.LOCKED:
-            from password_dialog import PasswordDialog
-            import keyring_helper
-            
-            # Find parent window
-            root = self.get_root()
-            
-            dialog = PasswordDialog(root, self.vault.name)
-            
-            # Try to load password
-            saved_password = keyring_helper.load_password(self.vault.path)
-            if saved_password:
-                dialog.password_entry.set_text(saved_password)
-                dialog.save_check.set_active(True)
-            
-            dialog.connect("response", self.on_password_response)
-            dialog.show()
+            self.on_unlock_clicked(btn)
         else:
-            # Lock logic
-            self.stop_mount_monitoring()
-            if CryptomatorBackend.lock(self.vault.path):
-                self.vault.status = VaultStatus.LOCKED
-                self.vault.mount_path = None
-                self.update_status()
+            self.on_lock_clicked(btn)
+    
+    def on_unlock_clicked(self, btn):
+        """Trigger unlock workflow"""
+        from password_dialog import PasswordDialog
+        import keyring_helper
+        
+        # Find parent window
+        root = self.get_root()
+        
+        dialog = PasswordDialog(root, self.vault.name)
+        
+        # Try to load password
+        saved_password = keyring_helper.load_password(self.vault.path)
+        if saved_password:
+            dialog.password_entry.set_text(saved_password)
+            dialog.save_check.set_active(True)
+        
+        dialog.connect("response", self.on_password_response)
+        dialog.show()
+    
+    def on_lock_clicked(self, btn):
+        """Trigger lock workflow"""
+        # Lock logic
+        self.stop_mount_monitoring()
+        if CryptomatorBackend.lock(self.vault.path):
+            self.vault.status = VaultStatus.LOCKED
+            self.vault.mount_path = None
+            self.update_status()
+            
+            # Save vault state
+            win = self.get_root()
+            if hasattr(win, 'save_vaults'):
+                win.save_vaults()
 
     def on_password_response(self, dialog, response):
         if response == "unlock":
@@ -225,6 +238,11 @@ class VaultRow(Adw.ActionRow):
                 self.vault.status = VaultStatus.UNLOCKED
                 self.vault.mount_path = actual_mount
                 self.update_status()
+                
+                # Save vault state
+                win = self.get_root()
+                if hasattr(win, 'save_vaults'):
+                    win.save_vaults()
                 
                 # Start monitoring for manual unmount
                 self.start_mount_monitoring()
@@ -329,12 +347,16 @@ class VaultRow(Adw.ActionRow):
                         self.vault.mount_path = None
                         self.update_status()
                         
+                        # Save vault state
+                        window = self.get_root()
+                        if hasattr(window, 'save_vaults'):
+                            window.save_vaults()
+                        
                         # Clean up backend tracking
                         if self.vault.path in CryptomatorBackend._instances:
                             del CryptomatorBackend._instances[self.vault.path]
                         
                         # Show notification
-                        window = self.get_root()
                         if hasattr(window, 'toast_overlay'):
                             toast = Adw.Toast.new(f"{self.vault.name} was unmounted")
                             toast.set_timeout(3)
