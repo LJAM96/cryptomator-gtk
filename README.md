@@ -36,7 +36,7 @@ Requirements:
 Build and install:
 
 ```bash
-flatpak-builder --force-clean --install --user build-dir io.github.ljam96.cryptomatorgtk.yml
+flatpak-builder --force-clean --install --user build-dir io.github.ljam96.locker.yml
 ```
 
 ## Usage
@@ -122,17 +122,17 @@ locker/
 flatpak install org.gnome.Platform//47 org.gnome.Sdk//47
 
 # Build and install
-flatpak-builder --force-clean --install --user build-dir io.github.ljam96.cryptomatorgtk.yml
+flatpak-builder --force-clean --install --user build-dir io.github.ljam96.locker.yml
 
 # Run
-flatpak run io.github.ljam96.cryptomatorgtk
+flatpak run io.github.ljam96.locker
 ```
 
 ### Running in Development Mode
 
 ```bash
 # Run with debug output
-flatpak run io.github.ljam96.CryptomatorGTK 2>&1 | tee debug.log
+flatpak run io.github.ljam96.locker 2>&1 | tee debug.log
 ```
 
 ## Releasing

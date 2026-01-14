@@ -52,13 +52,13 @@ class SettingsDialog(Adw.PreferencesWindow):
 
     def check_autostart(self):
         autostart_dir = self.get_host_autostart_dir()
-        path = os.path.join(autostart_dir, "io.github.ljam96.cryptomatorgtk.desktop")
+        path = os.path.join(autostart_dir, "io.github.ljam96.locker.desktop")
         return os.path.exists(path)
 
     def on_autostart_changed(self, row, param):
         is_active = row.get_active()
         autostart_dir = self.get_host_autostart_dir()
-        autostart_path = os.path.join(autostart_dir, "io.github.ljam96.cryptomatorgtk.desktop")
+        autostart_path = os.path.join(autostart_dir, "io.github.ljam96.locker.desktop")
         
         if is_active:
             os.makedirs(autostart_dir, exist_ok=True)
@@ -66,10 +66,10 @@ class SettingsDialog(Adw.PreferencesWindow):
             # Note: Exec needs to be valid on HOST. 'flatpak run ...' is correct.
             content = """[Desktop Entry]
 Type=Application
-Name=Cryptomator GTK
-Exec=flatpak run io.github.ljam96.cryptomatorgtk --background
-Icon=io.github.ljam96.cryptomatorgtk
-X-Flatpak=io.github.ljam96.cryptomatorgtk
+Name=Locker
+Exec=flatpak run io.github.ljam96.locker --background
+Icon=io.github.ljam96.locker
+X-Flatpak=io.github.ljam96.locker
 Terminal=false
 Categories=Utility;Security;
 """
