@@ -108,7 +108,7 @@ class CryptomatorBackend:
         return False
     
     @classmethod
-    def lock(cls, vault_path):
+    def lock(cls, vault_path, mount_point=None):
         if vault_path in cls._instances:
             proc, mount_path = cls._instances[vault_path]
             # Terminate process to unmount
@@ -121,34 +121,51 @@ class CryptomatorBackend:
             del cls._instances[vault_path]
             
             # Clean up mount point directory
+            cls._cleanup_mount(mount_path)
+            return True
+            
+        elif mount_point:
+            # Not in instances, but we have a mount point. Try to unmount using fusermount.
+            print(f"DEBUG: Attempting to unmount orphaned vault at {mount_point}", flush=True)
             try:
-                vault_name = os.path.basename(mount_path)
-                home_dir = os.path.expanduser('~')
-                cryptomator_base = os.path.join(home_dir, "mnt", "cryptomator")
-                mnt_base = os.path.join(home_dir, "mnt")
+                subprocess.run(['flatpak-spawn', '--host', 'fusermount3', '-u', mount_point], check=True)
+                # Cleanup
+                cls._cleanup_mount(mount_point)
+                return True
+            except Exception as e:
+                print(f"DEBUG: Failed to unmount {mount_point}: {e}", flush=True)
+                return False
                 
-                # Remove the vault-specific directory
-                subprocess.run(['flatpak-spawn', '--host', 'rmdir', mount_path], check=False)
-                
-                # Check if cryptomator directory is empty and remove it
-                try:
-                    result = subprocess.run(['flatpak-spawn', '--host', 'ls', '-A', cryptomator_base], 
+        return False
+
+    @staticmethod
+    def _cleanup_mount(mount_path):
+        if not mount_path: return
+        
+        try:
+            home_dir = os.path.expanduser('~')
+            cryptomator_base = os.path.join(home_dir, "mnt", "cryptomator")
+            mnt_base = os.path.join(home_dir, "mnt")
+            
+            # Remove the vault-specific directory
+            subprocess.run(['flatpak-spawn', '--host', 'rmdir', mount_path], check=False)
+            
+            # Check if cryptomator directory is empty and remove it
+            try:
+                result = subprocess.run(['flatpak-spawn', '--host', 'ls', '-A', cryptomator_base], 
+                                      capture_output=True, text=True)
+                if not result.stdout.strip():
+                    subprocess.run(['flatpak-spawn', '--host', 'rmdir', cryptomator_base], check=False)
+                    
+                    # Check if mnt directory is empty and remove it
+                    result = subprocess.run(['flatpak-spawn', '--host', 'ls', '-A', mnt_base], 
                                           capture_output=True, text=True)
                     if not result.stdout.strip():
-                        subprocess.run(['flatpak-spawn', '--host', 'rmdir', cryptomator_base], check=False)
-                        
-                        # Check if mnt directory is empty and remove it
-                        result = subprocess.run(['flatpak-spawn', '--host', 'ls', '-A', mnt_base], 
-                                              capture_output=True, text=True)
-                        if not result.stdout.strip():
-                            subprocess.run(['flatpak-spawn', '--host', 'rmdir', mnt_base], check=False)
-                except Exception:
-                    pass
-            except Exception as e:
-                print(f"DEBUG: Failed to clean up mount point: {e}", flush=True)
-            
-            return True
-        return False
+                        subprocess.run(['flatpak-spawn', '--host', 'rmdir', mnt_base], check=False)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"DEBUG: Failed to clean up mount point: {e}", flush=True)
     
     @classmethod
     def create_vault(cls, vault_path, password):
