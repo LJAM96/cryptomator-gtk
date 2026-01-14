@@ -3,11 +3,11 @@ name: Build and Release Flatpak
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v0.1.2)'
+        description: "Version tag (e.g., v0.1.2)"
         required: true
         type: string
 
@@ -20,49 +20,49 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-47
       options: --privileged
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
-          manifest-path: io.github.ljam96.cryptomatorgtk.yml
+          bundle: locker-${{ inputs.version || github.ref_name }}.flatpak
+          manifest-path: io.github.ljam96.locker.yml
           cache-key: flatpak-builder-${{ github.sha }}
-      
+
       - name: Generate SHA256 checksum
         run: |
-          sha256sum cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak > cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
-          cat cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
-      
+          sha256sum locker-${{ inputs.version || github.ref_name }}.flatpak > locker-${{ inputs.version || github.ref_name }}.flatpak.sha256
+          cat locker-${{ inputs.version || github.ref_name }}.flatpak.sha256
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version || github.ref_name }}
           files: |
-            cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
-            cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
+            locker-${{ inputs.version || github.ref_name }}.flatpak
+            locker-${{ inputs.version || github.ref_name }}.flatpak.sha256
           draft: false
           prerelease: false
           generate_release_notes: true
           body: |
             ## Installation
-            
+
             Download the `.flatpak` file and install:
-            
+
             ```bash
-            flatpak install cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak
+            flatpak install locker-${{ inputs.version || github.ref_name }}.flatpak
             ```
-            
+
             Verify the download (optional):
             ```bash
-            sha256sum -c cryptomator-gtk-${{ inputs.version || github.ref_name }}.flatpak.sha256
+            sha256sum -c locker-${{ inputs.version || github.ref_name }}.flatpak.sha256
             ```
-            
+
             ## What's Changed
             See below for automatically generated release notes.
         env:
