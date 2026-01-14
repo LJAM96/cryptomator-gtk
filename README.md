@@ -22,7 +22,7 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 Download the latest `.flatpak` file from the [Releases](../../releases) page and install:
 
 ```bash
-flatpak install cryptomator-gtk-v1.0.0.flatpak
+flatpak install cryptomator-gtk-v0.1.5.flatpak
 ```
 
 ### From Source
@@ -144,8 +144,8 @@ To create a new release:
 3. Create and push a version tag:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v0.1.5
+git push origin v0.1.5
 ```
 
 The GitHub Action will automatically:
