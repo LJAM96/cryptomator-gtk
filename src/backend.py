@@ -133,8 +133,16 @@ class CryptomatorBackend:
                 cls._cleanup_mount(mount_point)
                 return True
             except Exception as e:
-                print(f"DEBUG: Failed to unmount {mount_point}: {e}", flush=True)
-                return False
+                print(f"DEBUG: Failed to standard unmount {mount_point}: {e}", flush=True)
+                # Try lazy unmount
+                try:
+                     print(f"DEBUG: Retrying with lazy unmount for {mount_point}", flush=True)
+                     subprocess.run(['flatpak-spawn', '--host', 'fusermount3', '-u', '-z', mount_point], check=True)
+                     cls._cleanup_mount(mount_point)
+                     return True
+                except Exception as e2:
+                    print(f"DEBUG: Failed to lazy unmount {mount_point}: {e2}", flush=True)
+                    return False
                 
         return False
 
