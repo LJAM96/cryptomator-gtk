@@ -10,7 +10,7 @@ from window import MainWindow
 class CryptomatorApp(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.props.application_id = 'io.github.ljam96.cryptomatorgtk'
+        self.props.application_id = 'io.github.ljam96.locker'
         self.props.flags |= Gio.ApplicationFlags.HANDLES_COMMAND_LINE
 
         self.add_main_option("background", ord("b"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Start in background", None)

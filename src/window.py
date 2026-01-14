@@ -11,65 +11,61 @@ class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self.set_default_size(800, 600)
-        self.set_title("Cryptomator")
+        self.set_default_size(550, 600)
+        self.set_title("Locker")
         
         self.vaults = [] 
         self._rows = [] 
 
         # Main content with toast overlay
         self.toast_overlay = Adw.ToastOverlay()
-        content = Adw.ToolbarView()
-        self.toast_overlay.set_child(content)
         self.set_content(self.toast_overlay)
 
-        # Header bar
+        # Toolbar View
+        self.toolbar_view = Adw.ToolbarView()
+        self.toast_overlay.set_child(self.toolbar_view)
+        
+        # Header Bar
         header = Adw.HeaderBar()
-        content.add_top_bar(header)
+        self.toolbar_view.add_top_bar(header)
         
-        # Add button with menu
-        add_menu = Gio.Menu()
-        add_menu.append("Add Existing Vault", "win.add_existing")
-        add_menu.append("Create New Vault", "win.create_new")
+        # Menu Button
+        menu_btn = Gtk.MenuButton()
+        menu_btn.set_icon_name("open-menu-symbolic")
+        menu_btn.set_menu_model(self.create_menu_model())
+        header.pack_end(menu_btn)
         
-        add_btn = Gtk.MenuButton(icon_name="list-add-symbolic")
-        add_btn.set_tooltip_text("Add Vault")
-        add_btn.set_menu_model(add_menu)
-        header.pack_end(add_btn)
+        # Add Button (Menu Button for Open/Create)
+        add_btn = Gtk.MenuButton()
+        add_btn.set_icon_name("list-add-symbolic")
+        add_btn.set_menu_model(self.create_add_menu_model())
+        header.pack_start(add_btn)
         
-        # Actions for add menu
-        add_existing_action = Gio.SimpleAction.new("add_existing", None)
-        add_existing_action.connect("activate", lambda a, p: self.on_add_clicked(None))
-        self.add_action(add_existing_action)
-        
-        create_new_action = Gio.SimpleAction.new("create_new", None)
-        create_new_action.connect("activate", self.on_create_new)
-        self.add_action(create_new_action)
-        
-        # Settings button
-        settings_btn = Gtk.Button(icon_name="emblem-system-symbolic")
-        settings_btn.set_tooltip_text("Settings")
-        settings_btn.connect("clicked", self.on_settings_clicked)
-        header.pack_end(settings_btn)
+        # Register window actions
+        self.setup_actions()
 
-        # Stack for switching between empty and list view
+        # Stack for Empty vs List
         self.stack = Gtk.Stack()
-        content.set_content(self.stack)
+        self.toolbar_view.set_content(self.stack)
 
         # Status Page (Empty State)
         self.status_page = Adw.StatusPage()
         self.status_page.set_title("No Vaults")
         self.status_page.set_description("Add a vault to get started.")
-        self.status_page.set_icon_name("io.github.ljam96.cryptomatorgtk") 
+        self.status_page.set_icon_name("io.github.ljam96.locker") 
         self.stack.add_named(self.status_page, "empty")
 
-        # List view (Preferences Page)
+        # List view (Preferences Page used as a list container)
         self.pref_page = Adw.PreferencesPage()
-        self.vault_group = Adw.PreferencesGroup()
-        self.pref_page.add(self.vault_group)
+        
+        # We need a group to hold the rows
+        self.vaults_group = Adw.PreferencesGroup()
+        self.pref_page.add(self.vaults_group)
+        
         self.stack.add_named(self.pref_page, "list")
 
-        self.config_dir = os.path.join(GLib.get_user_config_dir(), "cryptomator-gtk")
+        self.config_dir = os.path.join(GLib.get_user_config_dir(), "locker")
+        self.migrate_data()
         self.vaults_file = os.path.join(self.config_dir, "vaults.json")
         self.load_vaults()
         
@@ -83,6 +79,34 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Connect close request handler
         self.connect("close-request", self.on_close_request)
+
+    def migrate_data(self):
+        """Migrate data from old config locations to the new 'locker' directory"""
+        if os.path.exists(self.config_dir):
+            # Already exists, check if it's empty
+            if os.listdir(self.config_dir):
+                return
+
+        # Possible old locations
+        old_dirs = [
+            os.path.join(GLib.get_user_config_dir(), "cryptomator-gtk"),
+            os.path.expanduser("~/.var/app/io.github.ljam96.cryptomatorgtk/config/cryptomator-gtk")
+        ]
+        
+        import shutil
+        for old_dir in old_dirs:
+            if os.path.exists(old_dir) and os.path.isdir(old_dir):
+                if not os.path.exists(self.config_dir):
+                    os.makedirs(self.config_dir, exist_ok=True)
+                
+                for item in os.listdir(old_dir):
+                    s = os.path.join(old_dir, item)
+                    d = os.path.join(self.config_dir, item)
+                    if os.path.isfile(s) and not os.path.exists(d):
+                        try:
+                            shutil.copy2(s, d)
+                        except: pass
+                break
 
     def check_automount(self):
         # Load settings to see if automount is enabled
@@ -111,8 +135,6 @@ class MainWindow(Adw.ApplicationWindow):
                 print(f"DEBUG: Vault {vault.name} is still mounted at {vault.mount_path}", flush=True)
                 vault.status = VaultStatus.UNLOCKED
                 row.update_status()
-                # Start monitoring for manual unmounts
-                row.start_mount_monitoring()
             else:
                 # Not mounted, clear mount_path
                 vault.mount_path = None
@@ -179,7 +201,7 @@ class MainWindow(Adw.ApplicationWindow):
                          # Don't auto-open file manager for automount to avoid multiple windows
 
     def get_vault_rows(self):
-        # Helper to iterate rows in vault_group
+        # Helper to iterate rows in vaults_group
         # Adw.PreferencesGroup doesn't explicitly expose child list easily via get_children?
         # It inherits from Gtk.Widget, but children are rows.
         # Let's iterate using standard Gtk widget capabilities if needed, 
@@ -191,10 +213,10 @@ class MainWindow(Adw.ApplicationWindow):
         # Let's just create a list self.rows = [] in init and append.
         return self._rows
 
-    def on_settings_clicked(self, btn):
+    def on_settings_clicked(self, action, param):
         from settings_dialog import SettingsDialog
         dlg = SettingsDialog(self)
-        dlg.show()
+        dlg.set_visible(True)
 
 
     def load_vaults(self):
@@ -209,8 +231,11 @@ class MainWindow(Adw.ApplicationWindow):
                     vault = Vault.from_dict(v_data)
                     self.vaults.append(vault)
                     row = VaultRow(vault)
-                    self.vault_group.add(row)
+                    self.vaults_group.add(row)
                     self._rows.append(row)
+                    
+                    # Connect activation
+                    row.connect("activated", self.on_row_activated)
         except Exception as e:
             print(f"Failed to load vaults: {e}")
 
@@ -224,25 +249,30 @@ class MainWindow(Adw.ApplicationWindow):
         except Exception as e:
             print(f"Failed to save vaults: {e}")
     
-    def remove_vault(self, row):
+    def remove_vault(self, vault):
         """Remove a vault from the list"""
-        # First, ensure vault is locked
-        if row.vault.status == VaultStatus.UNLOCKED:
-            # Lock it first
+        # Find the row for this vault
+        row = next((r for r in self._rows if r.vault == vault), None)
+        if not row:
+            return
+
+        # First, ensure vault is locked (backend logic)
+        if vault.status == VaultStatus.UNLOCKED:
             from backend import CryptomatorBackend
-            CryptomatorBackend.lock(row.vault.path)
-            row.stop_mount_monitoring()
+            CryptomatorBackend.lock(vault.path)
+            # Monitoring is now in VaultView, which calls this. 
+            # VaultView should handle its own stopping.
         
         # Remove from vaults list
-        if row.vault in self.vaults:
-            self.vaults.remove(row.vault)
+        if vault in self.vaults:
+            self.vaults.remove(vault)
         
         # Remove from rows list
         if row in self._rows:
             self._rows.remove(row)
         
         # Remove from UI
-        self.vault_group.remove(row)
+        self.vaults_group.remove(row)
         
         # Save changes
         self.save_vaults()
@@ -252,7 +282,7 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Show toast notification
         if hasattr(self, 'toast_overlay'):
-            toast = Adw.Toast.new(f"Removed '{row.vault.name}' from vault list")
+            toast = Adw.Toast.new(f"Removed '{vault.name}' from vault list")
             toast.set_timeout(3)
             self.toast_overlay.add_toast(toast)
 
@@ -262,7 +292,7 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.stack.set_visible_child_name("list")
 
-    def on_add_clicked(self, btn):
+    def on_add_clicked(self, action, param):
         dialog = Gtk.FileChooserNative(
             title="Open Cryptomator Vault",
             transient_for=self,
@@ -360,7 +390,9 @@ class MainWindow(Adw.ApplicationWindow):
             self.save_vaults()
             
             row = VaultRow(vault)
-            self.vault_group.add(row)
+            row.set_activatable(True)
+            row.connect("activated", self.on_row_activated)
+            self.vaults_group.add(row)
             self._rows.append(row)
             
             self.update_ui_state()
@@ -384,7 +416,13 @@ class MainWindow(Adw.ApplicationWindow):
                     # Find the row and trigger unlock
                     for row in self._rows:
                         if row.vault.path == vault_path:
-                            row.on_unlock_clicked(None)
+                            # Navigate to page
+                            self.on_row_activated(row)
+                            # Can we auto-trigger unlock? 
+                            # The view creates a new instance. We can't easily reach it unless on_row_activated returned it.
+                            # But we can just leave it as user needs to click unlock button on the new page.
+                            # Or we can push and then find the page.
+                            # Simpler: just navigate. The user will see the big "Unlock" button.
                             break
                 dlg.destroy()
             
@@ -402,6 +440,74 @@ class MainWindow(Adw.ApplicationWindow):
         
         return False  # Don't repeat
 
+    def create_menu_model(self):
+        menu = Gio.Menu()
+        menu.append("Preferences", "win.preferences")
+        menu.append("Keyboard Shortcuts", "win.shortcuts")
+        menu.append("About Cryptomator", "win.about")
+        return menu
+
+    def create_add_menu_model(self):
+        menu = Gio.Menu()
+        menu.append("Open Existing Vault...", "win.add-existing")
+        menu.append("Create New Vault...", "win.create-new")
+        return menu
+
+    def setup_actions(self):
+        # Add Existing
+        action = Gio.SimpleAction.new("add-existing", None)
+        action.connect("activate", self.on_add_clicked)
+        self.add_action(action)
+        
+        # Create New
+        action = Gio.SimpleAction.new("create-new", None)
+        action.connect("activate", self.on_create_new)
+        self.add_action(action)
+        
+        # About
+        action = Gio.SimpleAction.new("about", None)
+        action.connect("activate", self.show_about)
+        self.add_action(action)
+
+        # Settings
+        action = Gio.SimpleAction.new("preferences", None)
+        action.connect("activate", self.on_settings_clicked)
+        self.add_action(action)
+
+    def on_row_activated(self, row):
+        # Navigation disabled in single-page mode
+        pass
+
+    def update_list_ui(self):
+        # Refresh the rows in the main list to reflect status changes
+        # For now, we might just need to update the specific row if we had a reference, 
+        # but simpler to just reload or if we have the row object, call update.
+        # Since we don't keep a map of rows easily, let's just iterate or rely on the fact that
+        # the row objects are alive. 
+        # Actually, VaultRow listens to nothing? VaultRow needs to update itself?
+        # Let's make VaultRow have an update method and call it.
+        for row in self._rows:
+            if hasattr(row, 'update_ui'):
+                row.update_ui()
+            # Or re-create list? Re-creating is safer but heavier.
+            # Let's try to find the row for the Vault and update it.
+            # Ideally the Row should listen to Vault changes or we notify it.
+        pass
+        
+    def show_about(self, action, param):
+        dialog = Adw.AboutDialog(
+            application_name="Locker",
+            application_icon="io.github.ljam96.locker",
+            developer_name="ljam96",
+            version="0.1.6",
+            copyright="© 2024-2026 ljam96",
+            website="https://github.com/ljam96/cryptomator-gtk",
+            issue_url="https://github.com/ljam96/cryptomator-gtk/issues",
+            license_type=Gtk.License.GPL_3_0,
+            comments="Simple GTK frontend for Cryptomator CLI. \n\nPowered by Cryptomator. All credit to the Cryptomator team for the encryption backend.",
+        )
+        dialog.present(self)
+
     def on_add_response(self, dialog, response):
         if response == Gtk.ResponseType.ACCEPT:
             folder = dialog.get_file()
@@ -414,7 +520,9 @@ class MainWindow(Adw.ApplicationWindow):
             self.save_vaults()
             
             row = VaultRow(vault)
-            self.vault_group.add(row)
+            row.set_activatable(True)
+            row.connect("activated", self.on_row_activated)
+            self.vaults_group.add(row)
             self._rows.append(row)
             
             self.update_ui_state()

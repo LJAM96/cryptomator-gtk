@@ -1,8 +1,8 @@
-app-id: io.github.ljam96.cryptomatorgtk
+app-id: io.github.ljam96.locker
 runtime: org.gnome.Platform
 runtime-version: "47"
 sdk: org.gnome.Sdk
-command: cryptomator-gtk
+command: locker
 finish-args:
   - --share=ipc
   - --socket=fallback-x11
@@ -108,20 +108,20 @@ modules:
   - name: cryptomator-gtk
     buildsystem: simple
     build-commands:
-      - install -D src/main.py /app/bin/cryptomator-gtk
-      - install -d /app/share/cryptomator-gtk/src
-      - cp -r src/* /app/share/cryptomator-gtk/src/
-      - install -D data/io.github.ljam96.cryptomatorgtk.desktop /app/share/applications/io.github.ljam96.cryptomatorgtk.desktop
-      - install -D data/io.github.ljam96.cryptomatorgtk.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.cryptomatorgtk.svg
-      - install -D data/icon.png /app/share/icons/hicolor/512x512/apps/io.github.ljam96.cryptomatorgtk.png
+      - install -D src/main.py /app/bin/locker
+      - install -d /app/share/locker/src
+      - cp -r src/* /app/share/locker/src/
+      - install -D data/io.github.ljam96.locker.desktop /app/share/applications/io.github.ljam96.locker.desktop
+      - install -D data/io.github.ljam96.locker.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.locker.svg
+      - install -D data/icon.png /app/share/icons/hicolor/512x512/apps/io.github.ljam96.locker.png
       # Wrapper to launch python app
       - |
-        cat > /app/bin/cryptomator-gtk <<EOF
+        cat > /app/bin/locker <<EOF
         #!/bin/bash
-        export PYTHONPATH=/app/share/cryptomator-gtk/src
-        exec python3 /app/share/cryptomator-gtk/src/main.py "\$@"
+        export PYTHONPATH=/app/share/locker/src
+        exec python3 /app/share/locker/src/main.py "\$@"
         EOF
-      - chmod +x /app/bin/cryptomator-gtk
+      - chmod +x /app/bin/locker
     sources:
       - type: dir
         path: .

@@ -31,7 +31,7 @@ class SettingsDialog(Adw.PreferencesWindow):
         self.automount_row.set_subtitle("Attempt to unlock saved vaults on startup")
         
         # Use JSON file for settings (no GSettings schema compiled)
-        self.settings_file = os.path.join(GLib.get_user_config_dir(), "cryptomator-gtk", "settings.json")
+        self.settings_file = os.path.join(GLib.get_user_config_dir(), "locker", "settings.json")
         self.load_settings()
         
         self.automount_row.connect("notify::active", self.on_automount_changed)

@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Cryptomator-gtk
+Name=Locker
 Comment=Unlock your Cryptomator vaults
-Exec=cryptomator-gtk
-Icon=io.github.ljam96.cryptomatorgtk
+Exec=locker
+Icon=io.github.ljam96.locker
 Terminal=false
 Type=Application
 Categories=Utility;Security;

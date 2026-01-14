@@ -4,7 +4,7 @@ from gi.repository import Secret
 
 # Secret Schema
 # We use a simple schema with the vault path as a unique attribute
-SCHEMA = Secret.Schema.new("io.github.ljam96.cryptomatorgtk",
+SCHEMA = Secret.Schema.new("io.github.ljam96.locker",
     Secret.SchemaFlags.NONE,
     {
         "vault_path": Secret.SchemaAttributeType.STRING,
@@ -13,7 +13,7 @@ SCHEMA = Secret.Schema.new("io.github.ljam96.cryptomatorgtk",
 
 def save_password(vault_path, password):
     attributes = {"vault_path": vault_path}
-    Secret.password_store(SCHEMA, attributes, Secret.COLLECTION_DEFAULT, f"Cryptomator Vault: {vault_path}", password, None, None)
+    Secret.password_store(SCHEMA, attributes, Secret.COLLECTION_DEFAULT, f"Locker Vault: {vault_path}", password, None, None)
 
 def load_password(vault_path):
     attributes = {"vault_path": vault_path}

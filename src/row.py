@@ -1,8 +1,9 @@
 import os
+import threading
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GObject, Gio, GLib
+from gi.repository import Gtk, Adw, GObject, Gio, GLib, Gdk
 from vault import Vault, VaultStatus
 from backend import CryptomatorBackend
 
@@ -16,85 +17,77 @@ class VaultRow(Adw.ActionRow):
         self.set_title(vault.name)
         self.set_subtitle(vault.path)
         
-        # Suffix widget (Button)
-        suffix_box = Gtk.Box(spacing=6)
+        # Status icon
+        self.status_icon = Gtk.Image()
+        self.add_prefix(self.status_icon)
         
-        self.action_btn = Gtk.Button(valign=Gtk.Align.CENTER)
-        self.action_btn.connect("clicked", self.on_action_clicked)
-        suffix_box.append(self.action_btn)
-        
+        # Action buttons box
+        self.suffix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.add_suffix(self.suffix_box)
+
+        # Open Folder button (shown only when unlocked)
         self.reveal_btn = Gtk.Button(icon_name="folder-open-symbolic")
-        self.reveal_btn.set_tooltip_text("Reveal in File Manager")
-        self.reveal_btn.set_valign(Gtk.Align.CENTER)
-        self.reveal_btn.set_visible(False)
-        self.reveal_btn.connect("clicked", self.on_reveal)
-        suffix_box.append(self.reveal_btn)
+        self.reveal_btn.set_tooltip_text("Open in Files")
+        self.reveal_btn.add_css_class("flat")
+        self.reveal_btn.connect("clicked", self.on_reveal_clicked)
+        self.suffix_box.append(self.reveal_btn)
+
+        # Unlock/Lock button
+        self.action_btn = Gtk.Button()
+        self.action_btn.add_css_class("flat")
+        self.action_btn.connect("clicked", self.on_action_clicked)
+        self.suffix_box.append(self.action_btn)
         
-        # Menu Button for More Actions
+        # Connect activation
+        self.set_activatable(False)
+        
+        self.setup_context_menu()
+        self.update_status()
+
+    def setup_context_menu(self):
+        # Action group for the row
+        action_group = Gio.SimpleActionGroup.new()
+        
+        # Remove action
+        action = Gio.SimpleAction.new("remove", None)
+        action.connect("activate", self.on_remove_action)
+        action_group.add_action(action)
+        
+        # Rename action
+        action = Gio.SimpleAction.new("rename", None)
+        action.connect("activate", self.on_rename_action)
+        action_group.add_action(action)
+        
+        self.insert_action_group("row", action_group)
+        
+        # Menu model
         menu = Gio.Menu()
         menu.append("Rename", "row.rename")
         menu.append("Remove", "row.remove")
         
-        menu_btn = Gtk.MenuButton()
-        menu_btn.set_icon_name("view-more-symbolic")
-        menu_btn.set_menu_model(menu)
-        menu_btn.set_valign(Gtk.Align.CENTER)
+        # Popover
+        self.popover = Gtk.PopoverMenu.new_from_model(menu)
+        self.popover.set_parent(self)
+        self.popover.set_has_arrow(False)
         
-        # Actions
-        action_group = Gio.SimpleActionGroup()
-        self.insert_action_group("row", action_group)
-        
-        rename_action = Gio.SimpleAction.new("rename", None)
-        rename_action.connect("activate", self.on_rename)
-        action_group.add_action(rename_action)
-        
-        remove_action = Gio.SimpleAction.new("remove", None)
-        remove_action.connect("activate", self.on_remove)
-        action_group.add_action(remove_action)
-
-        suffix_box.append(menu_btn)
-        self.add_suffix(suffix_box)
-        
-        # Add double-click gesture to unlock/lock vault
+        # Right click gesture
         gesture = Gtk.GestureClick.new()
-        gesture.set_button(1)  # Left mouse button
-        gesture.connect("released", self.on_row_clicked)
+        gesture.set_button(3) # Right click
+        gesture.connect("released", self.on_secondary_click_released)
         self.add_controller(gesture)
-        
-        self.update_status()
 
-    def update_status(self):
-        if self.vault.status == VaultStatus.LOCKED:
-            self.action_btn.set_icon_name("changes-prevent-symbolic")
-            self.action_btn.set_tooltip_text("Unlock")
-            self.action_btn.remove_css_class("destructive-action")
-            self.action_btn.add_css_class("suggested-action")
-            self.set_subtitle(self.vault.path)
-            if hasattr(self, 'reveal_btn'):
-                self.reveal_btn.set_visible(False)
-        elif self.vault.status == VaultStatus.UNLOCKED:
-            self.action_btn.set_icon_name("changes-allow-symbolic")
-            self.action_btn.set_tooltip_text("Lock")
-            self.action_btn.remove_css_class("suggested-action")
-            self.action_btn.add_css_class("destructive-action")
-            if self.vault.mount_path:
-                self.set_subtitle(f"Mounted at {self.vault.mount_path}")
-                # Add a Reveal button to the suffix box if not already there?
-                # Simpler: Modify action to be just Lock, but add a new button "folder-open-symbolic" to suffix box only when unlocked.
-                # However, rebuilding dynamic widgets in update_status is tricky.
-                # Let's add the button in init and hide/show it.
-                if hasattr(self, 'reveal_btn'):
-                    self.reveal_btn.set_visible(True)
-    
-    def on_reveal(self, btn):
-        if self.vault.mount_path:
-            # Use specific portal call or Gio.AppInfo.launch_default_for_uri
-            # 'file://' uri
-            uri = f"file://{self.vault.mount_path}"
-            Gtk.show_uri(self.get_root(), uri, 0)
-    
-    def on_remove(self, action, param):
-        """Remove vault from the list (does not delete vault files)"""
+    def on_secondary_click_released(self, gesture, n_press, x, y):
+        # Position the popover at the click coordinates
+        rect = Gdk.Rectangle()
+        rect.x = x
+        rect.y = y
+        rect.width = 1
+        rect.height = 1
+        self.popover.set_pointing_to(rect)
+        self.popover.popup()
+
+    def on_remove_action(self, action, param):
+        """Remove vault from the list"""
         dialog = Adw.MessageDialog(
             heading="Remove Vault",
             body=f"Remove '{self.vault.name}' from the vault list?\n\nThis will NOT delete the vault files, only remove it from this application.",
@@ -108,22 +101,15 @@ class VaultRow(Adw.ActionRow):
         
         def response_cb(dlg, response):
             if response == "remove":
-                # Get the window and remove this vault
                 win = self.get_root()
                 if hasattr(win, 'remove_vault'):
-                    win.remove_vault(self)
+                    win.remove_vault(self.vault)
             dlg.destroy()
             
         dialog.connect("response", response_cb)
         dialog.show()
-    
-    def on_row_clicked(self, gesture, n_press, x, y):
-        """Handle row clicks - double-click triggers unlock/lock"""
-        if n_press == 2:  # Double click
-            # Simulate clicking the action button
-            self.on_action_clicked(None)
-    
-    def on_rename(self, action, param):
+
+    def on_rename_action(self, action, param):
         dialog = Adw.MessageDialog(
             heading="Rename Vault",
             body=f"Enter a new name for '{self.vault.name}'",
@@ -138,236 +124,111 @@ class VaultRow(Adw.ActionRow):
         dialog.add_response("rename", "Rename")
         dialog.set_response_appearance("rename", Adw.ResponseAppearance.SUGGESTED)
         
-        def response_cb(dialog, response):
+        def response_cb(dlg, response):
             if response == "rename":
                 new_name = entry.get_text()
                 if new_name:
                     self.vault.name = new_name
-                    self.set_title(new_name)
-                    # Trigger save in parent window (via custom signal or callback)
-                    # Getting root (window) and calling save is acceptable for this scale
+                    self.update_ui()
                     win = self.get_root()
                     if hasattr(win, 'save_vaults'):
                         win.save_vaults()
-            dialog.destroy()
+            dlg.destroy()
             
         dialog.connect("response", response_cb)
         dialog.show()
 
-    
-    def on_action_clicked(self, btn):
-        if self.vault.status == VaultStatus.LOCKED:
-            self.on_unlock_clicked(btn)
+    def update_status(self):
+        is_unlocked = self.vault.status == VaultStatus.UNLOCKED
+        
+        if is_unlocked:
+            self.status_icon.set_from_icon_name("changes-allow-symbolic")
+            self.action_btn.set_icon_name("changes-allow-symbolic")
+            self.action_btn.set_tooltip_text("Lock")
+            self.action_btn.add_css_class("destructive-action")
+            self.action_btn.remove_css_class("suggested-action")
+            if self.vault.mount_path:
+                self.set_subtitle(f"Mounted at {self.vault.mount_path}")
+            self.reveal_btn.set_visible(True)
         else:
-            self.on_lock_clicked(btn)
-    
-    def on_unlock_clicked(self, btn):
-        """Trigger unlock workflow"""
-        from password_dialog import PasswordDialog
-        import keyring_helper
-        
-        # Find parent window
-        root = self.get_root()
-        
-        dialog = PasswordDialog(root, self.vault.name)
-        
-        # Try to load password
-        saved_password = keyring_helper.load_password(self.vault.path)
-        if saved_password:
-            dialog.password_entry.set_text(saved_password)
-            dialog.save_check.set_active(True)
-        
-        dialog.connect("response", self.on_password_response)
-        dialog.show()
-    
-    def on_lock_clicked(self, btn):
-        """Trigger lock workflow"""
-        # Lock logic
-        self.stop_mount_monitoring()
-        if CryptomatorBackend.lock(self.vault.path):
-            self.vault.status = VaultStatus.LOCKED
-            self.vault.mount_path = None
-            self.update_status()
-            
-            # Save vault state
-            win = self.get_root()
-            if hasattr(win, 'save_vaults'):
-                win.save_vaults()
+            self.status_icon.set_from_icon_name("changes-prevent-symbolic")
+            self.action_btn.set_icon_name("changes-prevent-symbolic")
+            self.action_btn.set_tooltip_text("Unlock")
+            self.action_btn.add_css_class("suggested-action")
+            self.action_btn.remove_css_class("destructive-action")
+            self.set_subtitle(self.vault.path)
+            self.reveal_btn.set_visible(False)
 
-    def on_password_response(self, dialog, response):
-        if response == "unlock":
-            password = dialog.get_password()
-            save_pwd = dialog.get_save_password()
+    def on_action_clicked(self, btn):
+        win = self.get_root()
+        if self.vault.status == VaultStatus.LOCKED:
+            # Open Password Dialog
+            from password_dialog import PasswordDialog
+            pwd_dlg = PasswordDialog(win, self.vault.name)
             
-            print(f"DEBUG: Unlock requested for vault: {self.vault.name}", flush=True)
+            def response_cb(dlg, response):
+                if response == "unlock":
+                    password = dlg.get_password()
+                    if password:
+                        # Call unlock logic (usually in window/backend)
+                        self.unlock_vault(password)
+                dlg.destroy()
             
-            # Determine mount point - use ~/mnt/cryptomator/ directory
+            pwd_dlg.connect("response", response_cb)
+            pwd_dlg.present()
+        else:
+            # Lock vault
+            self.lock_vault()
+
+    def unlock_vault(self, password):
+        # Disable button and show spinner/loading state if possible
+        self.action_btn.set_sensitive(False)
+        self.action_btn.set_tooltip_text("Unlocking...")
+        
+        def run_unlock():
+            from backend import CryptomatorBackend
             home_dir = os.path.expanduser('~')
             mount_base = os.path.join(home_dir, "mnt", "cryptomator")
             mount_point = os.path.join(mount_base, self.vault.name)
             
-            print(f"DEBUG: Mount point: {mount_point}", flush=True)
-            print(f"DEBUG: Vault path: {self.vault.path}", flush=True)
+            success, actual_mount = CryptomatorBackend.unlock(self.vault.path, password, mount_point)
             
-            # Show loading state
-            self.action_btn.set_sensitive(False)
-            self.action_btn.set_icon_name("content-loading-symbolic")
-            original_subtitle = self.get_subtitle()
-            self.set_subtitle("Unlocking...")
+            # Update UI on main thread
+            GLib.idle_add(self.on_unlock_finished, success, actual_mount)
             
-            # Run unlock in background thread
-            def unlock_thread():
-                try:
-                    success, actual_mount = CryptomatorBackend.unlock(self.vault.path, password, mount_point)
-                    GLib.idle_add(self.on_unlock_complete, success, actual_mount, password, save_pwd, original_subtitle)
-                except Exception as e:
-                    GLib.idle_add(self.on_unlock_error, e, original_subtitle)
-            
-            import threading
-            thread = threading.Thread(target=unlock_thread, daemon=True)
-            thread.start()
-            
-        dialog.destroy()
-    
-    def on_unlock_complete(self, success, actual_mount, password, save_pwd, original_subtitle):
+        threading.Thread(target=run_unlock, daemon=True).start()
+
+    def on_unlock_finished(self, success, actual_mount):
         self.action_btn.set_sensitive(True)
         
-        try:
-            if success:
-                print(f"DEBUG: Backend.unlock returned True", flush=True)
-                self.vault.status = VaultStatus.UNLOCKED
-                self.vault.mount_path = actual_mount
-                self.update_status()
-                
-                # Save vault state
-                win = self.get_root()
-                if hasattr(win, 'save_vaults'):
-                    win.save_vaults()
-                
-                # Start monitoring for manual unmount
-                self.start_mount_monitoring()
-                
-                # Handle keyring
-                import keyring_helper
-                if save_pwd:
-                    keyring_helper.save_password(self.vault.path, password)
-                else:
-                    keyring_helper.delete_password(self.vault.path)
-                
-                # Open file manager to show the mounted vault
-                if actual_mount:
-                    print(f"DEBUG: Opening file manager for {actual_mount}", flush=True)
-                    # Simple approach: just show URI without D-Bus complexity
-                    try:
-                        uri = f"file://{actual_mount}"
-                        print(f"DEBUG: Attempting to open URI: {uri}", flush=True)
-                        Gtk.show_uri(self.get_root(), uri, 0)
-                        print(f"DEBUG: URI opened successfully", flush=True)
-                    except Exception as e:
-                        print(f"DEBUG: show_uri failed: {e}", flush=True)
-                        import traceback
-                        traceback.print_exc()
-                
-            else:
-                # Show error dialog and toast
-                print("DEBUG: Backend.unlock returned False - FAILED", flush=True)
-                print("DEBUG: Showing error dialog to user", flush=True)
-                
-                # Restore original state
-                self.set_subtitle(original_subtitle)
-                self.update_status()
-                
-                # Show toast notification
-                window = self.get_root()
-                if hasattr(window, 'toast_overlay'):
-                    toast = Adw.Toast.new("Incorrect password. Please try again.")
-                    toast.set_timeout(3)
-                    window.toast_overlay.add_toast(toast)
-                
-                # Show error dialog
-                error_dialog = Adw.MessageDialog(
-                    heading="Unlock Failed",
-                    body="The password you entered is incorrect. Please try again.",
-                    transient_for=self.get_root()
-                )
-                error_dialog.add_response("ok", "OK")
-                error_dialog.set_default_response("ok")
-                error_dialog.show()
-                print("DEBUG: Error dialog shown", flush=True)
-        except Exception as e:
-            print(f"ERROR: Exception during unlock complete: {e}", flush=True)
-            import traceback
-            traceback.print_exc()
-        
-        return False  # Don't repeat
-    
-    def on_unlock_error(self, error, original_subtitle):
-        self.action_btn.set_sensitive(True)
-        self.set_subtitle(original_subtitle)
-        self.update_status()
-        
-        print(f"ERROR: Exception during unlock: {error}", flush=True)
-        import traceback
-        traceback.print_exc()
-        
-        # Show error dialog
-        error_dialog = Adw.MessageDialog(
-            heading="Unlock Error",
-            body=f"An error occurred while unlocking the vault:\n{str(error)}",
-            transient_for=self.get_root()
-        )
-        error_dialog.add_response("ok", "OK")
-        error_dialog.set_default_response("ok")
-        error_dialog.show()
-        
-        return False  # Don't repeat
-    
-    def start_mount_monitoring(self):
-        """Monitor mount point to detect manual unmounts"""
-        if not hasattr(self, '_mount_monitor_id') or self._mount_monitor_id is None:
-            self._mount_monitor_id = GLib.timeout_add_seconds(2, self.check_mount_status)
-    
-    def stop_mount_monitoring(self):
-        """Stop monitoring the mount"""
-        if hasattr(self, '_mount_monitor_id') and self._mount_monitor_id:
-            GLib.source_remove(self._mount_monitor_id)
-            self._mount_monitor_id = None
-    
-    def check_mount_status(self):
-        """Check if vault is still mounted"""
-        if self.vault.status == VaultStatus.UNLOCKED and self.vault.mount_path:
-            # Check if mount point still has content (simple check)
-            if not os.path.ismount(self.vault.mount_path):
-                # Check if the directory is empty or inaccessible
-                try:
-                    # If we can't access it or it's been unmounted, update status
-                    if not os.path.exists(self.vault.mount_path) or len(os.listdir(self.vault.mount_path)) == 0:
-                        print(f"DEBUG: Detected manual unmount of {self.vault.name}", flush=True)
-                        self.vault.status = VaultStatus.LOCKED
-                        self.vault.mount_path = None
-                        self.update_status()
-                        
-                        # Save vault state
-                        window = self.get_root()
-                        if hasattr(window, 'save_vaults'):
-                            window.save_vaults()
-                        
-                        # Clean up backend tracking
-                        if self.vault.path in CryptomatorBackend._instances:
-                            del CryptomatorBackend._instances[self.vault.path]
-                        
-                        # Show notification
-                        if hasattr(window, 'toast_overlay'):
-                            toast = Adw.Toast.new(f"{self.vault.name} was unmounted")
-                            toast.set_timeout(3)
-                            window.toast_overlay.add_toast(toast)
-                        
-                        self.stop_mount_monitoring()
-                        return False  # Stop monitoring
-                except:
-                    pass
-            
-            return True  # Continue monitoring
+        if success:
+            self.vault.status = VaultStatus.UNLOCKED
+            self.vault.mount_path = actual_mount
+            self.update_status()
+            # Automatically open file manager on success
+            self.on_reveal_clicked(None)
         else:
-            self.stop_mount_monitoring()
-            return False  # Stop monitoring
+            self.action_btn.set_tooltip_text("Unlock")
+            # Show error toast/dialog
+            win = self.get_root()
+            if hasattr(win, 'toast_overlay'):
+                toast = Adw.Toast.new("Failed to unlock vault")
+                win.toast_overlay.add_toast(toast)
+
+    def lock_vault(self):
+        from backend import CryptomatorBackend
+        if CryptomatorBackend.lock(self.vault.path):
+            self.vault.status = VaultStatus.LOCKED
+            self.vault.mount_path = None
+            self.update_status()
+
+    def on_reveal_clicked(self, btn):
+        if self.vault.mount_path:
+            uri = f"file://{self.vault.mount_path}"
+            Gtk.show_uri(self.get_root(), uri, 0)
+
+    def update_ui(self):
+        # Alias for update_status if window calls update_ui
+        self.update_status()
+        self.set_title(self.vault.name)
+

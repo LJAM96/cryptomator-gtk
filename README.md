@@ -1,4 +1,4 @@
-# <img src="data/io.github.ljam96.cryptomatorgtk.svg" width="48" style="vertical-align: middle;"/> Cryptomator-gtk
+# <img src="data/io.github.ljam96.locker.svg" width="48" style="vertical-align: middle;"/> Locker
 
 A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vaults on Linux.
 
@@ -22,7 +22,7 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 Download the latest `.flatpak` file from the [Releases](../../releases) page and install:
 
 ```bash
-flatpak install cryptomator-gtk-v0.1.5.flatpak
+flatpak install locker-v0.1.6.flatpak
 ```
 
 ### From Source
@@ -95,7 +95,7 @@ Uses `cryptomator-cli` for vault operations via FUSE mounting. The CLI is bundle
 ### Project Structure
 
 ```
-cryptomater-gtk/
+locker/
 ├── src/
 │   ├── main.py              # Application entry point
 │   ├── window.py            # Main window
@@ -105,11 +105,11 @@ cryptomater-gtk/
 │   ├── vault_creator.py     # Vault creation logic
 │   ├── create_vault_dialog.py  # Creation UI
 │   ├── password_dialog.py   # Password input dialog
-│   └── settings_dialog.py   # Settings (future use)
+│   └── settings_dialog.py   # Settings
 ├── data/
-│   ├── io.github.ljam96.cryptomatorgtk.desktop
-│   └── io.github.ljam96.cryptomatorgtk.svg
-├── io.github.ljam96.cryptomatorgtk.yml  # Flatpak manifest
+│   ├── io.github.ljam96.locker.desktop
+│   └── io.github.ljam96.locker.svg
+├── io.github.ljam96.locker.yml  # Flatpak manifest
 └── .github/
     └── workflows/
         └── release.yml      # Automated builds
