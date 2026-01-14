@@ -113,6 +113,7 @@ modules:
       - cp -r src/* /app/share/cryptomator-gtk/src/
       - install -D data/io.github.ljam96.cryptomatorgtk.desktop /app/share/applications/io.github.ljam96.cryptomatorgtk.desktop
       - install -D data/io.github.ljam96.cryptomatorgtk.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.cryptomatorgtk.svg
+      - install -D data/icon.png /app/share/icons/hicolor/512x512/apps/io.github.ljam96.cryptomatorgtk.png
       # Wrapper to launch python app
       - |
         cat > /app/bin/cryptomator-gtk <<EOF

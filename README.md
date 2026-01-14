@@ -1,4 +1,4 @@
-# Cryptomator-gtk
+# <img src="data/io.github.ljam96.cryptomatorgtk.svg" width="48" style="vertical-align: middle;"/> Cryptomator-gtk
 
 A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vaults on Linux.
 
@@ -28,6 +28,7 @@ flatpak install cryptomator-gtk-v1.0.0.flatpak
 ### From Source
 
 Requirements:
+
 - Flatpak
 - flatpak-builder
 - GNOME SDK 47
@@ -35,7 +36,7 @@ Requirements:
 Build and install:
 
 ```bash
-flatpak-builder --force-clean --install --user build-dir io.github.ljam96.CryptomatorGTK.yml
+flatpak-builder --force-clean --install --user build-dir io.github.ljam96.cryptomatorgtk.yml
 ```
 
 ## Usage
@@ -106,9 +107,9 @@ cryptomater-gtk/
 │   ├── password_dialog.py   # Password input dialog
 │   └── settings_dialog.py   # Settings (future use)
 ├── data/
-│   ├── io.github.ljam96.CryptomatorGTK.desktop
-│   └── io.github.ljam96.CryptomatorGTK.svg
-├── io.github.ljam96.CryptomatorGTK.yml  # Flatpak manifest
+│   ├── io.github.ljam96.cryptomatorgtk.desktop
+│   └── io.github.ljam96.cryptomatorgtk.svg
+├── io.github.ljam96.cryptomatorgtk.yml  # Flatpak manifest
 └── .github/
     └── workflows/
         └── release.yml      # Automated builds
@@ -121,10 +122,10 @@ cryptomater-gtk/
 flatpak install org.gnome.Platform//47 org.gnome.Sdk//47
 
 # Build and install
-flatpak-builder --force-clean --install --user build-dir io.github.ljam96.CryptomatorGTK.yml
+flatpak-builder --force-clean --install --user build-dir io.github.ljam96.cryptomatorgtk.yml
 
 # Run
-flatpak run io.github.ljam96.CryptomatorGTK
+flatpak run io.github.ljam96.cryptomatorgtk
 ```
 
 ### Running in Development Mode
@@ -148,6 +149,7 @@ git push origin v1.0.0
 ```
 
 The GitHub Action will automatically:
+
 - Build the Flatpak
 - Create a bundle file
 - Generate SHA256 checksum
@@ -170,6 +172,7 @@ The GitHub Action will automatically:
 ### Created vault won't open in official Cryptomator
 
 Vaults created with Cryptomator-gtk are fully compatible. If there's an issue:
+
 - Verify all files exist: `masterkey.cryptomator`, `vault.cryptomator`, `d/` directory
 - Check permissions on vault directory
 
@@ -214,6 +217,6 @@ This project is licensed under GPL-3.0 to maintain compatibility with bundled co
 
 ## Disclaimer
 
-This is an independent community project and is not affiliated with, endorsed by, or sponsored by Skymatic GmbH or Cryptomator.org. 
+This is an independent community project and is not affiliated with, endorsed by, or sponsored by Skymatic GmbH or Cryptomator.org.
 
 **Cryptomator** is a registered trademark of Skymatic GmbH. This project uses the Cryptomator name to indicate compatibility with the Cryptomator vault format and to acknowledge the use of cryptomator-cli as a dependency. No trademark infringement is intended.
