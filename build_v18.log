@@ -1,0 +1,103 @@
+Emptying app dir 'build-dir'
+Downloading sources
+Starting build of io.github.ljam96.locker
+Cache hit for openjdk, skipping build
+Cache hit for libfuse3, skipping build
+Cache hit for fusermount-wrapper, skipping build
+Cache hit for cryptomator-cli, skipping build
+Cache hit for python3-cffi, skipping build
+Cache hit for python3-cryptography, skipping build
+Cache hit for python3-miscreant, skipping build
+Cache hit for python3-pyjwt, skipping build
+Cache miss, checking out last cache hit
+========================================================================
+Building module cryptomator-gtk in /var/home/luke/git/cryptomator-gtk/.flatpak-builder/build/cryptomator-gtk-1
+========================================================================
+Running: install -D src/main.py /app/bin/locker
+Running: install -d /app/share/locker/src
+Running: cp -r src/* /app/share/locker/src/
+Running: install -D data/io.github.ljam96.locker.desktop /app/share/applications/io.github.ljam96.locker.desktop
+Running: install -D data/io.github.ljam96.locker.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.locker.svg
+Running: install -D data/icon.png /app/share/icons/hicolor/512x512/apps/io.github.ljam96.locker.png
+Running: cat > /app/bin/locker <<EOF
+#!/bin/bash
+export PYTHONPATH=/app/share/locker/src
+exec python3 /app/share/locker/src/main.py "\$@"
+EOF
+
+Running: chmod +x /app/bin/locker
+Recording license file LICENSE
+Removing stale python bytecode file files/share/locker/src/__pycache__/backend_old.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/backend.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/create_vault_dialog.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/keyring_helper.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/main.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/password_dialog.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/row.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/settings_dialog.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/vault_creator.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/vault.cpython-314.pyc
+Removing stale python bytecode file files/share/locker/src/__pycache__/window.cpython-314.pyc
+Committing stage build-cryptomator-gtk to cache
+Cleaning up
+Removing files/share/man/man8/mount.fuse3.8
+Removing files/share/man/man8
+Removing files/share/man/man1/fusermount3.1
+Removing files/share/man/man1
+Removing files/share/man
+Removing files/lib/pkgconfig/fuse3.pc
+Removing files/lib/pkgconfig
+Removing files/include/fuse3/fuse_opt.h
+Removing files/include/fuse3/fuse_lowlevel.h
+Removing files/include/fuse3/fuse_log.h
+Removing files/include/fuse3/fuse_common.h
+Removing files/include/fuse3/fuse.h
+Removing files/include/fuse3/cuse_lowlevel.h
+Removing files/include/fuse3
+Removing files/include
+Committing stage cleanup to cache
+Finishing app
+Exporting share/applications/io.github.ljam96.locker.desktop
+Exporting share/icons/hicolor/scalable/apps/io.github.ljam96.locker.svg
+Exporting share/icons/hicolor/512x512/apps/io.github.ljam96.locker.png
+Please review the exported files and the metadata
+Committing stage finish to cache
+Exporting io.github.ljam96.locker to repo
+No appstream data for app/io.github.ljam96.cryptomatorgtk/x86_64/master: No such file or directory: /files/share/app-info
+No appstream data for app/io.github.ljam96.locker/x86_64/master: No such file or directory: /files/share/app-info
+Commit: 988b1eae75ccc97b6a9d8a5b57b679b480ef500aa153e58edec99de583b1a2d3
+Metadata Total: 253
+Metadata Written: 3
+Content Total: 575
+Content Written: 0
+Content Bytes Written: 0 (0 bytes)
+Exporting io.github.ljam96.locker.Debug to repo
+No appstream data for app/io.github.ljam96.cryptomatorgtk/x86_64/master: No such file or directory: /files/share/app-info
+No appstream data for app/io.github.ljam96.locker/x86_64/master: No such file or directory: /files/share/app-info
+Commit: c3227c004783257b02d71fb7a2bb19852113940c09c92561c0b656d9477dffd5
+Metadata Total: 47
+Metadata Written: 1
+Content Total: 52
+Content Written: 0
+Content Bytes Written: 0 (0 bytes)
+Info: org.gnome.Platform is end-of-life, with reason: The GNOME 47 runtime is no longer supported as of October 15, 2025. Please ask your application developer to migrate to a supported platform.
+Info: org.gnome.Platform.Locale is end-of-life, with reason: The GNOME 47 runtime is no longer supported as of October 15, 2025. Please ask your application developer to migrate to a supported platform.
+Installing runtime/io.github.ljam96.locker.Debug/x86_64/master
+Installing app/io.github.ljam96.locker/x86_64/master
+
+** (process:356283): WARNING **: 23:03:00.514: Unknown bus method ReloadConfig
+
+Note that '/var/home/luke/.local/share/flatpak/exports/share' is not in the search path
+set by the XDG_DATA_HOME and XDG_DATA_DIRS
+environment variables, so applications may not
+be able to find it until you set them. The
+directories currently searched are:
+
+- /var/home/luke/.var/app/org.flatpak.Builder/data
+- /app/share
+- /usr/share
+- /usr/share/runtime/share
+- /run/host/user-share
+- /run/host/share
+
+Pruning cache

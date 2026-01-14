@@ -22,7 +22,7 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 Download the latest `.flatpak` file from the [Releases](../../releases) page and install:
 
 ```bash
-flatpak install locker-v0.1.6.flatpak
+flatpak install locker-v1.0.6.flatpak
 ```
 
 ### From Source

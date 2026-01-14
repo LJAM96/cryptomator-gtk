@@ -444,7 +444,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu = Gio.Menu()
         menu.append("Preferences", "win.preferences")
         menu.append("Keyboard Shortcuts", "win.shortcuts")
-        menu.append("About Cryptomator", "win.about")
+        menu.append("About Locker", "win.about")
         return menu
 
     def create_add_menu_model(self):
@@ -499,7 +499,7 @@ class MainWindow(Adw.ApplicationWindow):
             application_name="Locker",
             application_icon="io.github.ljam96.locker",
             developer_name="ljam96",
-            version="0.1.6",
+            version="1.0.6",
             copyright="© 2024-2026 ljam96",
             website="https://github.com/ljam96/cryptomator-gtk",
             issue_url="https://github.com/ljam96/cryptomator-gtk/issues",

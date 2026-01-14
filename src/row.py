@@ -217,7 +217,7 @@ class VaultRow(Adw.ActionRow):
 
     def lock_vault(self):
         from backend import CryptomatorBackend
-        if CryptomatorBackend.lock(self.vault.path):
+        if CryptomatorBackend.lock(self.vault.path, self.vault.mount_path):
             self.vault.status = VaultStatus.LOCKED
             self.vault.mount_path = None
             self.update_status()
