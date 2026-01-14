@@ -6,6 +6,8 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 
 - 🔓 **Unlock and lock Cryptomator vaults** - Full vault management without the official Java app
 - 🆕 **Create new vaults** - Fully standalone vault creation (no official Cryptomator app needed!)
+- 🚀 **Autostart** - Launch automatically on login
+- 💾 **Auto-mount** - Automatically unlock saved vaults on startup
 - 🔐 **Secure password handling** - Optional system keyring integration
 - 📁 **File manager integration** - Automatically opens mounted vaults
 - ✏️ **Rename vaults** - Organize your vaults easily
@@ -17,12 +19,24 @@ A lightweight GTK4/Libadwaita desktop application for managing Cryptomator vault
 
 ## Installation
 
-### From Flatpak Bundle (Recommended)
+### From Repository (Recommended)
+
+To receive automatic updates, add the repository and install:
+
+```bash
+# 1. Add the repository
+flatpak remote-add --user --if-not-exists locker-repo https://ljam96.github.io/cryptomator-gtk/locker.flatpakrepo
+
+# 2. Install Locker
+flatpak install --user locker-repo io.github.ljam96.locker
+```
+
+### Manual Installation (Flatpak Bundle)
 
 Download the latest `.flatpak` file from the [Releases](../../releases) page and install:
 
 ```bash
-flatpak install locker-v1.0.6.flatpak
+flatpak install locker-v1.0.7.flatpak
 ```
 
 ### From Source
@@ -40,6 +54,13 @@ flatpak-builder --force-clean --install --user build-dir io.github.ljam96.locker
 ```
 
 ## Usage
+
+### Settings
+
+Access settings via the window menu to configure:
+
+- **Launch on Boot**: Start the application automatically in the background when you log in.
+- **Auto-mount Vaults**: Automatically attempt to unlock all saved vaults when the application starts.
 
 ### Adding Existing Vaults
 

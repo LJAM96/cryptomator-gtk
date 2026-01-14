@@ -499,7 +499,7 @@ class MainWindow(Adw.ApplicationWindow):
             application_name="Locker",
             application_icon="io.github.ljam96.locker",
             developer_name="ljam96",
-            version="1.0.6",
+            version="1.0.7",
             copyright="© 2024-2026 ljam96",
             website="https://github.com/ljam96/cryptomator-gtk",
             issue_url="https://github.com/ljam96/cryptomator-gtk/issues",

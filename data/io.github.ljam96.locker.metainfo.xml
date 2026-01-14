@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.ljam96.locker</id>
+  <name>Locker</name>
+  <summary>Unlock your Cryptomator vaults</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <description>
+    <p>
+      Locker is a lightweight GTK4 application for managing and unlocking your Cryptomator vaults on Linux.
+      It provides a native, modern interface to creating, locking, and unlocking your secured files.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.ljam96.locker.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/ljam96/cryptomator-gtk/main/screenshots/main.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/ljam96/cryptomator-gtk</url>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="1.0.7" date="2026-01-14" />
+  </releases>
+</component>

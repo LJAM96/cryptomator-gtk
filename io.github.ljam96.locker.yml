@@ -112,6 +112,7 @@ modules:
       - install -d /app/share/locker/src
       - cp -r src/* /app/share/locker/src/
       - install -D data/io.github.ljam96.locker.desktop /app/share/applications/io.github.ljam96.locker.desktop
+      - install -D data/io.github.ljam96.locker.metainfo.xml /app/share/metainfo/io.github.ljam96.locker.metainfo.xml
       - install -D data/io.github.ljam96.locker.svg /app/share/icons/hicolor/scalable/apps/io.github.ljam96.locker.svg
       - install -D data/icon.png /app/share/icons/hicolor/512x512/apps/io.github.ljam96.locker.png
       # Wrapper to launch python app
